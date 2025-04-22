@@ -4,7 +4,7 @@ A JavaScript library for generating beautiful [Penrose](https://en.wikipedia.org
 
 _Built for learning, exploring and imagining._
 
-![Penrose Tiling Example](https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Penrose_Tiling_%28P3%29.svg/800px-Penrose_Tiling_%28P3%29.svg.png)
+![Penrose Tiling Example](./example.png)
 
 ## Features
 
