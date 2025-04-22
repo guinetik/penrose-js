@@ -1,6 +1,6 @@
 {
-  "name": "penrose-js",
-  "version": "0.1.0",
+  "name": "@guinetik/penrose-js",
+  "version": "0.0.1",
   "description": "A JavaScript library for generating beautiful Penrose tilings",
   "type": "module",
   "main": "dist/penrose-js.umd.js",
@@ -36,7 +36,8 @@
     "build:demo": "node ./scripts/build.demo.js",
     "debug": "vite build --mode debug",
     "preview": "vite preview",
-    "deploy:demo": "gh-pages --dist public --branch gh-pages"
+    "deploy:demo": "gh-pages --dist public --branch gh-pages",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "penrose",
@@ -52,12 +53,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/penrose-js.git"
+    "url": "git+https://github.com/guinetik/penrose-js.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/penrose-js/issues"
+    "url": "https://github.com/guinetik/penrose-js/issues"
   },
-  "homepage": "https://github.com/yourusername/penrose-js#readme",
+  "homepage": "https://github.com/guinetik/penrose-js#readme",
   "devDependencies": {
     "gh-pages": "^6.3.0",
     "terser": "^5.39.0",

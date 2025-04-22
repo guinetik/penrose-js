@@ -21,7 +21,7 @@ _Built for learning, exploring and imagining._
 ## Installation
 
 ```bash
-npm install penrose-js
+npm install @guinetik/penrose-js
 ```
 
 ## Usage
