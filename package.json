@@ -1,0 +1,67 @@
+{
+  "name": "penrose-js",
+  "version": "0.1.0",
+  "description": "A JavaScript library for generating beautiful Penrose tilings",
+  "type": "module",
+  "main": "dist/penrose-js.umd.js",
+  "module": "dist/penrose-js.es.js",
+  "unpkg": "dist/penrose-js.umd.min.js",
+  "jsdelivr": "dist/penrose-js.umd.min.js",
+  "exports": {
+    ".": {
+      "import": {
+        "development": "./dist/penrose-js.es.js",
+        "production": "./dist/penrose-js.es.min.js",
+        "default": "./dist/penrose-js.es.js"
+      },
+      "require": {
+        "development": "./dist/penrose-js.umd.js",
+        "production": "./dist/penrose-js.umd.min.js",
+        "default": "./dist/penrose-js.umd.js"
+      },
+      "default": "./dist/penrose-js.umd.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node ./scripts/minify.js",
+    "build:standard": "vite build",
+    "build:minify": "vite build --mode minify",
+    "build:demo": "node ./scripts/build.demo.js",
+    "debug": "vite build --mode debug",
+    "preview": "vite preview",
+    "deploy:demo": "gh-pages --dist public --branch gh-pages"
+  },
+  "keywords": [
+    "penrose",
+    "tiling",
+    "canvas",
+    "bitmap",
+    "visualization",
+    "math",
+    "geometry",
+    "pattern"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/penrose-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/penrose-js/issues"
+  },
+  "homepage": "https://github.com/yourusername/penrose-js#readme",
+  "devDependencies": {
+    "gh-pages": "^6.3.0",
+    "terser": "^5.39.0",
+    "terser-webpack-plugin": "^5.3.14",
+    "vite": "^4.4.9"
+  }
+}
