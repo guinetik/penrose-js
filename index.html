@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Penrose-JS Demo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1, h2 {
+      color: #333;
+      text-align: center;
+    }
+    header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .logo-container {
+      position: relative;
+      width: 300px;
+      height: 100px;
+      margin: 0 auto;
+    }
+    .logo-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      background-color: transparent;
+      box-shadow: none;
+    }
+    .logo-mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      mix-blend-mode: multiply;
+    }
+    .demo-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+    }
+    .demo-section {
+      flex: 1;
+      min-width: 500px;
+      max-width: 550px;
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input[type="range"] {
+      width: calc(100% - 40px);
+      display: inline-block;
+    }
+    input[type="range"] + span {
+      width: 30px;
+      display: inline-block;
+      text-align: right;
+    }
+    .color-input-container {
+      display: flex;
+      align-items: center;
+    }
+    .color-input-container input[type="color"] {
+      width: 60px;
+      height: 30px;
+      padding: 2px;
+      margin-right: 10px;
+    }
+    .color-preview {
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+      border: 1px solid #ccc;
+      vertical-align: middle;
+      margin-left: 5px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 8px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      width: 100%;
+      height: auto;
+    }
+    .options {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #666;
+    }
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+    .download-btn {
+      background-color: #2196F3;
+    }
+    .download-btn:hover {
+      background-color: #0b7dda;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <canvas id="logo-penrose" class="logo-canvas" width="300" height="100"></canvas>
+      <img id="logo-mask" class="logo-mask" src="./logo.png" width="300" height="100" />
+    </div>
+  </header>
+  
+  <h1>Penrose-JS Demo</h1>
+  <p style="text-align: center;">Showcases both Canvas and Bitmap rendering approaches of the Penrose-JS library.</p>
+  
+  <div class="demo-container">
+    <!-- Canvas Demo -->
+    <div class="demo-section">
+      <h2>Canvas Rendering</h2>
+      <div class="controls">
+        <div class="form-group">
+          <label for="canvas-divisions">Subdivisions:</label>
+          <input type="range" id="canvas-divisions" min="1" max="8" value="5" step="1">
+          <span id="canvas-divisionsValue">5</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="canvas-zoom">Zoom:</label>
+          <select id="canvas-zoom">
+            <option value="in">In</option>
+            <option value="out">Out</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="canvas-color1">Thin Rhombi Color:</label>
+          <div class="color-input-container">
+            <input type="color" id="canvas-color1" value="#cc4c4c">
+            <div class="color-preview" id="canvas-color1Preview" style="background-color: #cc4c4c;"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="canvas-color2">Thick Rhombi Color:</label>
+          <div class="color-input-container">
+            <input type="color" id="canvas-color2" value="#4c99cc">
+            <div class="color-preview" id="canvas-color2Preview" style="background-color: #4c99cc;"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="canvas-color3">Outline Color:</label>
+          <div class="color-input-container">
+            <input type="color" id="canvas-color3" value="#333333">
+            <div class="color-preview" id="canvas-color3Preview" style="background-color: #333333;"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="canvas-backgroundColor">Background Color:</label>
+          <div class="color-input-container">
+            <input type="color" id="canvas-backgroundColor" value="#ffffff">
+            <div class="color-preview" id="canvas-backgroundColorPreview" style="background-color: #ffffff;"></div>
+          </div>
+        </div>
+        
+        <div class="button-group">
+          <button id="canvas-generate">Generate</button>
+          <button id="canvas-randomize" style="background-color: #9C27B0;">Randomize Colors</button>
+          <button id="canvas-download" class="download-btn">Download Image</button>
+        </div>
+      </div>
+      
+      <canvas id="canvas-penrose" width="500" height="500"></canvas>
+    </div>
+    
+    <!-- Bitmap Demo -->
+    <div class="demo-section">
+      <h2>Bitmap Rendering</h2>
+      <div class="controls">
+        <div class="form-group">
+          <label for="bitmap-divisions">Subdivisions:</label>
+          <input type="range" id="bitmap-divisions" min="3" max="8" value="5" step="1">
+          <span id="bitmap-divisionsValue">5</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="bitmap-zoom">Zoom:</label>
+          <select id="bitmap-zoom">
+            <option value="in">In</option>
+            <option value="out">Out</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="bitmap-color1">Thin Rhombi Color:</label>
+          <div class="color-input-container">
+            <input type="color" id="bitmap-color1" value="#ff6347">
+            <div class="color-preview" id="bitmap-color1Preview" style="background-color: #ff6347;"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="bitmap-color2">Thick Rhombi Color:</label>
+          <div class="color-input-container">
+            <input type="color" id="bitmap-color2" value="#4682b4">
+            <div class="color-preview" id="bitmap-color2Preview" style="background-color: #4682b4;"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="bitmap-color3">Outline Color:</label>
+          <div class="color-input-container">
+            <input type="color" id="bitmap-color3" value="#333333">
+            <div class="color-preview" id="bitmap-color3Preview" style="background-color: #333333;"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="bitmap-backgroundColor">Background Color:</label>
+          <div class="color-input-container">
+            <input type="color" id="bitmap-backgroundColor" value="#ffffff">
+            <div class="color-preview" id="bitmap-backgroundColorPreview" style="background-color: #ffffff;"></div>
+          </div>
+        </div>
+        
+        <div class="button-group">
+          <button id="bitmap-generate">Generate</button>
+          <button id="bitmap-randomize" style="background-color: #9C27B0;">Randomize Colors</button>
+          <button id="bitmap-download" class="download-btn">Download Image</button>
+        </div>
+      </div>
+      
+      <canvas id="bitmap-penrose" width="500" height="500"></canvas>
+    </div>
+  </div>
+
+  <script type="module">
+    import { PenroseCanvas, PenroseBitmap, getRandomColor } from './penrose-js.es.min.js';
+    
+    // Logo with Penrose tiling texture
+    function setupPenroseLogo() {
+      const logoCanvas = document.getElementById('logo-penrose');
+      const logoCtx = logoCanvas.getContext('2d');
+      const logoMask = document.getElementById('logo-mask');
+      
+      // Make sure logo is loaded before processing
+      if (logoMask.complete) {
+        generateLogoTiling();
+        // Set up animation to change pattern every 3 seconds
+        setInterval(generateLogoTiling, 3000);
+      } else {
+        logoMask.onload = () => {
+          generateLogoTiling();
+          // Set up animation to change pattern every 3 seconds
+          setInterval(generateLogoTiling, 3000);
+        };
+      }
+      
+      function generateLogoTiling() {
+        // Clear canvas completely
+        logoCtx.clearRect(0, 0, logoCanvas.width, logoCanvas.height);
+        
+        // Create a Penrose tiling generator for the logo
+        const logoPenrose = new PenroseCanvas();
+        
+        // Generate random colors for the tiling
+        const color1 = getRandomColor();
+        const color2 = getRandomColor();
+        const color3 = getRandomColor();
+        
+        // Generate a colorful Penrose tiling
+        logoPenrose.generatePenroseTiling({
+          ctx: logoCtx,
+          divisions: 2 + Math.floor(Math.random() * 2), // Random divisions between 4-7
+          zoomType: "in",
+          width: logoCanvas.width,
+          height: logoCanvas.height,
+          color1: color1,
+          color2: color2,
+          color3: color3,
+          backgroundColor: 'transparent'
+        });
+        
+        // Apply masking using composite operations
+        logoCtx.globalCompositeOperation = 'destination-in';
+        
+        // Create a temporary canvas for the mask
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = logoCanvas.width;
+        tempCanvas.height = logoCanvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // Draw the logo mask to the temporary canvas
+        tempCtx.drawImage(logoMask, 0, 0, logoCanvas.width, logoCanvas.height);
+        
+        // Apply the mask
+        logoCtx.drawImage(tempCanvas, 0, 0);
+        
+        // Reset composite operation
+        logoCtx.globalCompositeOperation = 'source-over';
+      }
+    }
+    
+    // Canvas Demo
+    const canvasElement = document.getElementById('canvas-penrose');
+    const canvasCtx = canvasElement.getContext('2d');
+    const canvasDivisionsInput = document.getElementById('canvas-divisions');
+    const canvasDivisionsValue = document.getElementById('canvas-divisionsValue');
+    const canvasZoomSelect = document.getElementById('canvas-zoom');
+    const canvasColor1Input = document.getElementById('canvas-color1');
+    const canvasColor2Input = document.getElementById('canvas-color2');
+    const canvasColor3Input = document.getElementById('canvas-color3');
+    const canvasBackgroundColorInput = document.getElementById('canvas-backgroundColor');
+    const canvasColor1Preview = document.getElementById('canvas-color1Preview');
+    const canvasColor2Preview = document.getElementById('canvas-color2Preview');
+    const canvasColor3Preview = document.getElementById('canvas-color3Preview');
+    const canvasBackgroundColorPreview = document.getElementById('canvas-backgroundColorPreview');
+    const canvasGenerateBtn = document.getElementById('canvas-generate');
+    const canvasRandomizeBtn = document.getElementById('canvas-randomize');
+    const canvasDownloadBtn = document.getElementById('canvas-download');
+    
+    // Update value displays
+    canvasDivisionsInput.addEventListener('input', () => {
+      canvasDivisionsValue.textContent = canvasDivisionsInput.value;
+    });
+    
+    // Update color previews
+    canvasColor1Input.addEventListener('input', () => {
+      canvasColor1Preview.style.backgroundColor = canvasColor1Input.value;
+    });
+    
+    canvasColor2Input.addEventListener('input', () => {
+      canvasColor2Preview.style.backgroundColor = canvasColor2Input.value;
+    });
+    
+    canvasColor3Input.addEventListener('input', () => {
+      canvasColor3Preview.style.backgroundColor = canvasColor3Input.value;
+    });
+    
+    canvasBackgroundColorInput.addEventListener('input', () => {
+      canvasBackgroundColorPreview.style.backgroundColor = canvasBackgroundColorInput.value;
+    });
+    
+    // Create Penrose tiling generator
+    const canvasPenrose = new PenroseCanvas();
+    
+    // Function to generate the canvas tiling
+    function generateCanvasTiling() {
+      // Reset canvas dimensions to trigger a complete refresh
+      canvasElement.width = parseInt(canvasElement.width);
+      canvasElement.height = parseInt(canvasElement.height);
+      
+      // Set canvas background color (as a fallback)
+      canvasElement.style.backgroundColor = canvasBackgroundColorInput.value;
+      
+      // Generate the tiling
+      canvasPenrose.generatePenroseTiling({
+        ctx: canvasCtx,
+        divisions: parseInt(canvasDivisionsInput.value),
+        zoomType: canvasZoomSelect.value,
+        width: canvasElement.width,
+        height: canvasElement.height,
+        color1: canvasColor1Input.value,
+        color2: canvasColor2Input.value,
+        color3: canvasColor3Input.value,
+        backgroundColor: canvasBackgroundColorInput.value
+      });
+    }
+    
+    // Canvas event listeners
+    canvasGenerateBtn.addEventListener('click', generateCanvasTiling);
+    
+    canvasRandomizeBtn.addEventListener('click', function() {
+      canvasColor1Input.value = getRandomColor();
+      canvasColor2Input.value = getRandomColor();
+      canvasColor3Input.value = getRandomColor();
+      canvasColor1Preview.style.backgroundColor = canvasColor1Input.value;
+      canvasColor2Preview.style.backgroundColor = canvasColor2Input.value;
+      canvasColor3Preview.style.backgroundColor = canvasColor3Input.value;
+      generateCanvasTiling();
+    });
+    
+    // Canvas download function
+    canvasDownloadBtn.addEventListener('click', function() {
+      // Create a download link
+      const link = document.createElement('a');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      link.download = `penrose-canvas-${timestamp}.png`;
+      
+      // Get the canvas data URL
+      link.href = canvasElement.toDataURL('image/png');
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    
+    // Bitmap Demo
+    const bitmapElement = document.getElementById('bitmap-penrose');
+    const bitmapCtx = bitmapElement.getContext('2d');
+    const bitmapDivisionsInput = document.getElementById('bitmap-divisions');
+    const bitmapDivisionsValue = document.getElementById('bitmap-divisionsValue');
+    const bitmapZoomSelect = document.getElementById('bitmap-zoom');
+    const bitmapColor1Input = document.getElementById('bitmap-color1');
+    const bitmapColor2Input = document.getElementById('bitmap-color2');
+    const bitmapColor3Input = document.getElementById('bitmap-color3');
+    const bitmapBackgroundColorInput = document.getElementById('bitmap-backgroundColor');
+    const bitmapColor1Preview = document.getElementById('bitmap-color1Preview');
+    const bitmapColor2Preview = document.getElementById('bitmap-color2Preview');
+    const bitmapColor3Preview = document.getElementById('bitmap-color3Preview');
+    const bitmapBackgroundColorPreview = document.getElementById('bitmap-backgroundColorPreview');
+    const bitmapGenerateBtn = document.getElementById('bitmap-generate');
+    const bitmapRandomizeBtn = document.getElementById('bitmap-randomize');
+    const bitmapDownloadBtn = document.getElementById('bitmap-download');
+    
+    // Update value displays
+    bitmapDivisionsInput.addEventListener('input', () => {
+      bitmapDivisionsValue.textContent = bitmapDivisionsInput.value;
+    });
+    
+    // Update color previews
+    bitmapColor1Input.addEventListener('input', () => {
+      bitmapColor1Preview.style.backgroundColor = bitmapColor1Input.value;
+    });
+    
+    bitmapColor2Input.addEventListener('input', () => {
+      bitmapColor2Preview.style.backgroundColor = bitmapColor2Input.value;
+    });
+    
+    bitmapColor3Input.addEventListener('input', () => {
+      bitmapColor3Preview.style.backgroundColor = bitmapColor3Input.value;
+    });
+    
+    bitmapBackgroundColorInput.addEventListener('input', () => {
+      bitmapBackgroundColorPreview.style.backgroundColor = bitmapBackgroundColorInput.value;
+    });
+    
+    // Create Penrose bitmap generator
+    const bitmapPenrose = new PenroseBitmap();
+    
+    // Function to generate the bitmap tiling
+    function generateBitmapTiling() {
+      // Generate the pixel data
+      const pixelData = bitmapPenrose.generatePenroseTiling({
+        divisions: parseInt(bitmapDivisionsInput.value),
+        zoomType: bitmapZoomSelect.value,
+        width: bitmapElement.width,
+        height: bitmapElement.height,
+        color1: bitmapColor1Input.value,
+        color2: bitmapColor2Input.value,
+        color3: bitmapColor3Input.value,
+        backgroundColor: bitmapBackgroundColorInput.value
+      });
+      
+      // Create ImageData from the pixel array
+      const imageData = new ImageData(pixelData, bitmapElement.width, bitmapElement.height);
+      
+      // Draw to canvas
+      bitmapCtx.putImageData(imageData, 0, 0);
+    }
+    
+    // Bitmap event listeners
+    bitmapGenerateBtn.addEventListener('click', generateBitmapTiling);
+    
+    bitmapRandomizeBtn.addEventListener('click', function() {
+      bitmapColor1Input.value = getRandomColor();
+      bitmapColor2Input.value = getRandomColor();
+      bitmapColor3Input.value = getRandomColor();
+      bitmapColor1Preview.style.backgroundColor = bitmapColor1Input.value;
+      bitmapColor2Preview.style.backgroundColor = bitmapColor2Input.value;
+      bitmapColor3Preview.style.backgroundColor = bitmapColor3Input.value;
+      generateBitmapTiling();
+    });
+    
+    // Bitmap download function
+    bitmapDownloadBtn.addEventListener('click', function() {
+      // Create a download link
+      const link = document.createElement('a');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      link.download = `penrose-bitmap-${timestamp}.png`;
+      
+      // Get the canvas data URL
+      link.href = bitmapElement.toDataURL('image/png');
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    
+    // Initialize the Penrose logo
+    document.addEventListener('DOMContentLoaded', () => {
+      setupPenroseLogo();
+      // Run existing initializations...
+      generateCanvasTiling();
+      generateBitmapTiling();
+    });
+  </script>
+</body>
+</html> 
