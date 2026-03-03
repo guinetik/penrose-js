@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const ROOT = path.join(__dirname, "..");
 const DEMOS = path.join(ROOT, "index.html");
+const GENERATIVE = path.join(ROOT, "generative.html");
 const DIST = path.join(ROOT, "dist");
 const PUBLIC = path.join(ROOT, "public");
 const ESM_FILE = path.join(DIST, "penrose-js.es.min.js");
@@ -30,13 +31,19 @@ function buildAndCopy() {
   console.log("📁 Copying logo.png  → public/");
   fs.copyFileSync(path.join(ROOT, "logo.png"), path.join(PUBLIC, "logo.png"));
 
-  console.log("🔄 Replacing imports in index.html");
+  console.log("📁 Copying generative.html → public/");
+  fs.copyFileSync(GENERATIVE, path.join(PUBLIC, "generative.html"));
+
+  console.log("🔄 Replacing imports in HTML files");
   const pathToReplace = "./src/index.js"
   const replacementPath = "./penrose-js.es.min.js"
 
-  const content = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf-8");
-  const updatedContent = content.replace(pathToReplace, replacementPath);
-  fs.writeFileSync(path.join(PUBLIC, "index.html"), updatedContent);  
+  for (const htmlFile of ["index.html", "generative.html"]) {
+    const filePath = path.join(PUBLIC, htmlFile);
+    const content = fs.readFileSync(filePath, "utf-8");
+    const updatedContent = content.replace(pathToReplace, replacementPath);
+    fs.writeFileSync(filePath, updatedContent);
+  }
 
   console.log("✅ build:demo complete");
 }

@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>penrose.gen — generative penrose art</title>
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface-2: #161616;
+      --border: #222222;
+      --border-light: #333333;
+      --text: #ededed;
+      --text-secondary: #a0a0a0;
+      --text-muted: #555555;
+      --accent: #00ff41;
+      --accent-dim: #00cc33;
+      --accent-glow: rgba(0, 255, 65, 0.15);
+      --danger: #ff3333;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+      --sidebar-w: 320px;
+      --log-h: 48px;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ═══ LAYOUT ═══ */
+    .app {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ═══ SIDEBAR ═══ */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--text);
+    }
+
+    .sidebar-header h1 span {
+      color: var(--accent);
+    }
+
+    .sidebar-header .nav-link {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .sidebar-header .nav-link:hover {
+      color: var(--text-secondary);
+      border-color: var(--border-light);
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 2px;
+    }
+
+    /* ═══ SECTIONS ═══ */
+    .section {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-label::before {
+      content: '>';
+      color: var(--accent);
+      font-weight: 400;
+    }
+
+    /* ═══ FORM CONTROLS ═══ */
+    .control {
+      margin-bottom: 14px;
+    }
+
+    .control:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .control-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .control-value {
+      font-size: 12px;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      min-width: 28px;
+      text-align: right;
+    }
+
+    /* Range slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--accent-glow);
+      transition: box-shadow 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 14px var(--accent-glow), 0 0 4px var(--accent);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    /* Select */
+    select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+
+    select:hover,
+    select:focus {
+      border-color: var(--border-light);
+    }
+
+    /* Color inputs */
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .color-input-wrap {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    input[type="color"] {
+      -webkit-appearance: none;
+      appearance: none;
+      border: none;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      position: absolute;
+      top: -6px;
+      left: -6px;
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    input[type="color"]::-webkit-color-swatch {
+      border: none;
+    }
+
+    .color-hex {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-track {
+      width: 36px;
+      height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .toggle-track.active {
+      background: var(--accent-dim);
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      background: var(--text);
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle-track.active::after {
+      transform: translateX(16px);
+    }
+
+    /* ═══ BUTTONS ═══ */
+    .actions {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.02em;
+    }
+
+    .btn:hover {
+      background: var(--border);
+      border-color: var(--border-light);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #ffffff;
+      border-color: #ffffff;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-accent {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-glow);
+      border-color: var(--accent);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-row .btn {
+      flex: 1;
+    }
+
+    /* ═══ PRESETS ═══ */
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .preset-btn {
+      padding: 6px 4px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      font-family: var(--mono);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--border-light);
+      color: var(--text);
+      background: var(--border);
+    }
+
+    /* ═══ VIEWPORT ═══ */
+    .viewport {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .canvas-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(0,255,65,0.02) 0%, transparent 70%),
+        var(--bg);
+    }
+
+    #display {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 4px;
+      image-rendering: auto;
+      box-shadow:
+        0 0 0 1px var(--border),
+        0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ═══ LOG STRIP ═══ */
+    .log-strip {
+      height: var(--log-h);
+      min-height: var(--log-h);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      overflow: hidden;
+      gap: 16px;
+    }
+
+    .log-entries {
+      display: flex;
+      gap: 20px;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .log-entry {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+      animation: logFadeIn 0.3s ease;
+    }
+
+    .log-entry .log-prefix {
+      color: var(--accent);
+      margin-right: 4px;
+    }
+
+    .log-entry .log-highlight {
+      color: var(--text-secondary);
+    }
+
+    @keyframes logFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      animation: pulse 2s ease infinite;
+    }
+
+    .status-dot.idle {
+      background: var(--text-muted);
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ═══ TRANSITIONING STATE ═══ */
+    .transitioning .btn-primary {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 768px) {
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        max-height: 45vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .canvas-wrap {
+        padding: 12px;
+      }
+
+      :root {
+        --log-h: 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>PENROSE<span>/</span><span>/</span>GEN</h1>
+        <a href="./index.html" class="nav-link">← demo</a>
+      </div>
+
+      <div class="sidebar-scroll">
+        <!-- Geometry -->
+        <div class="section">
+          <div class="section-label">geometry</div>
+
+          <div class="control">
+            <div class="control-row">
+              <span class="control-label">subdivisions</span>
+              <span class="control-value" id="val-divisions">5</span>
+            </div>
+            <input type="range" id="divisions" min="1" max="8" value="5" step="1">
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <span class="control-label">zoom</span>
+            </div>
+            <select id="zoom">
+              <option value="in">in — centered</option>
+              <option value="out">out — expanded</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Palette -->
+        <div class="section">
+          <div class="section-label">palette</div>
+
+          <div class="control">
+            <div class="control-row">
+              <span class="control-label">thin rhombi</span>
+            </div>
+            <div class="color-row">
+              <div class="color-input-wrap">
+                <input type="color" id="color1" value="#cc4c4c">
+              </div>
+              <span class="color-hex" id="hex-color1">#cc4c4c</span>
+            </div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <span class="control-label">thick rhombi</span>
+            </div>
+            <div class="color-row">
+              <div class="color-input-wrap">
+                <input type="color" id="color2" value="#4c99cc">
+              </div>
+              <span class="color-hex" id="hex-color2">#4c99cc</span>
+            </div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <span class="control-label">stroke</span>
+            </div>
+            <div class="color-row">
+              <div class="color-input-wrap">
+                <input type="color" id="color3" value="#1a1a1a">
+              </div>
+              <span class="color-hex" id="hex-color3">#1a1a1a</span>
+            </div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <span class="control-label">background</span>
+            </div>
+            <div class="color-row">
+              <div class="color-input-wrap">
+                <input type="color" id="bgColor" value="#0a0a0a">
+              </div>
+              <span class="color-hex" id="hex-bgColor">#0a0a0a</span>
+            </div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <span class="control-label">stroke opacity</span>
+              <span class="control-value" id="val-strokeOpacity">80%</span>
+            </div>
+            <input type="range" id="strokeOpacity" min="0" max="100" value="80" step="1">
+          </div>
+        </div>
+
+        <!-- Presets -->
+        <div class="section">
+          <div class="section-label">presets</div>
+          <div class="presets-grid">
+            <button class="preset-btn" data-preset="ember">ember</button>
+            <button class="preset-btn" data-preset="ocean">ocean</button>
+            <button class="preset-btn" data-preset="matrix">matrix</button>
+            <button class="preset-btn" data-preset="noir">noir</button>
+            <button class="preset-btn" data-preset="sunset">sunset</button>
+            <button class="preset-btn" data-preset="arctic">arctic</button>
+          </div>
+        </div>
+
+        <!-- Animation -->
+        <div class="section">
+          <div class="section-label">transition</div>
+
+          <div class="control">
+            <div class="control-row">
+              <span class="control-label">duration</span>
+              <span class="control-value" id="val-duration">0.8s</span>
+            </div>
+            <input type="range" id="duration" min="200" max="3000" value="800" step="100">
+          </div>
+
+          <div class="control">
+            <div class="toggle-row" id="toggle-autocycle">
+              <span class="control-label">auto-cycle</span>
+              <div class="toggle-track" id="track-autocycle"></div>
+            </div>
+          </div>
+
+          <div class="control" id="interval-control" style="display:none;">
+            <div class="control-row">
+              <span class="control-label">interval</span>
+              <span class="control-value" id="val-interval">5s</span>
+            </div>
+            <input type="range" id="interval" min="2" max="15" value="5" step="1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-apply">APPLY</button>
+        <div class="btn-row">
+          <button class="btn btn-accent" id="btn-randomize">RANDOMIZE</button>
+          <button class="btn" id="btn-export">EXPORT PNG</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ VIEWPORT ═══ -->
+    <div class="viewport">
+      <div class="canvas-wrap">
+        <canvas id="display" width="800" height="800"></canvas>
+      </div>
+
+      <div class="log-strip">
+        <div class="status-dot idle" id="status-dot"></div>
+        <div class="log-entries" id="log-entries">
+          <div class="log-entry">
+            <span class="log-prefix">$</span>
+            <span>penrose.gen ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { PenroseCanvas, getRandomColor, hexToRgb } from './src/index.js';
+
+    // ═══════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════
+    let isTransitioning = false;
+    let animFrameId = null;
+    let autoCycleEnabled = false;
+    let autoCycleTimer = null;
+    let firstRender = true;
+
+    // ═══════════════════════════════════════════
+    // DOM REFS
+    // ═══════════════════════════════════════════
+    const $ = (s) => document.getElementById(s);
+    const display = $('display');
+    const ctx = display.getContext('2d');
+
+    // Offscreen buffers for transition
+    const bufferOld = document.createElement('canvas');
+    const bufferNew = document.createElement('canvas');
+    bufferOld.width = bufferNew.width = display.width;
+    bufferOld.height = bufferNew.height = display.height;
+    const ctxOld = bufferOld.getContext('2d');
+    const ctxNew = bufferNew.getContext('2d');
+
+    // Penrose generator
+    const penrose = new PenroseCanvas();
+
+    // Controls
+    const elDivisions = $('divisions');
+    const elZoom = $('zoom');
+    const elColor1 = $('color1');
+    const elColor2 = $('color2');
+    const elColor3 = $('color3');
+    const elBgColor = $('bgColor');
+    const elStrokeOpacity = $('strokeOpacity');
+    const elDuration = $('duration');
+    const elInterval = $('interval');
+    const elBtnApply = $('btn-apply');
+    const elBtnRandomize = $('btn-randomize');
+    const elBtnExport = $('btn-export');
+    const elToggleAutocycle = $('toggle-autocycle');
+    const elTrackAutocycle = $('track-autocycle');
+    const elIntervalControl = $('interval-control');
+    const elLogEntries = $('log-entries');
+    const elStatusDot = $('status-dot');
+
+    // ═══════════════════════════════════════════
+    // PRESETS
+    // ═══════════════════════════════════════════
+    const PRESETS = {
+      ember:  { color1: '#ff4d2a', color2: '#ff8c1a', color3: '#331100', bgColor: '#0d0000', strokeOpacity: 60 },
+      ocean:  { color1: '#0077b6', color2: '#00b4d8', color3: '#023e5c', bgColor: '#001219', strokeOpacity: 70 },
+      matrix: { color1: '#00ff41', color2: '#008f11', color3: '#003b00', bgColor: '#000000', strokeOpacity: 90 },
+      noir:   { color1: '#d4d4d4', color2: '#737373', color3: '#1a1a1a', bgColor: '#000000', strokeOpacity: 100 },
+      sunset: { color1: '#ff006e', color2: '#fb5607', color3: '#3a0015', bgColor: '#10002b', strokeOpacity: 50 },
+      arctic: { color1: '#a8dadc', color2: '#457b9d', color3: '#1d3557', bgColor: '#0b1929', strokeOpacity: 80 },
+    };
+
+    // ═══════════════════════════════════════════
+    // HELPERS
+    // ═══════════════════════════════════════════
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function getConfig() {
+      const opacity = parseInt(elStrokeOpacity.value) / 100;
+      const strokeRgb = hexToRgb(elColor3.value);
+      strokeRgb[3] = opacity;
+
+      return {
+        divisions: parseInt(elDivisions.value),
+        zoomType: elZoom.value,
+        width: display.width,
+        height: display.height,
+        color1: elColor1.value,
+        color2: elColor2.value,
+        color3: strokeRgb,
+        backgroundColor: elBgColor.value,
+      };
+    }
+
+    function getDuration() {
+      return parseInt(elDuration.value);
+    }
+
+    // ═══════════════════════════════════════════
+    // LOGGING
+    // ═══════════════════════════════════════════
+    const MAX_LOG_ENTRIES = 4;
+
+    function log(msg, highlight) {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      const text = highlight
+        ? `<span class="log-prefix">$</span> ${msg} <span class="log-highlight">${highlight}</span>`
+        : `<span class="log-prefix">$</span> ${msg}`;
+      entry.innerHTML = text;
+
+      elLogEntries.appendChild(entry);
+
+      // Keep only latest entries
+      while (elLogEntries.children.length > MAX_LOG_ENTRIES) {
+        elLogEntries.removeChild(elLogEntries.firstChild);
+      }
+    }
+
+    function setStatus(active) {
+      elStatusDot.classList.toggle('idle', !active);
+    }
+
+    // ═══════════════════════════════════════════
+    // RENDERING
+    // ═══════════════════════════════════════════
+    function renderToContext(targetCtx, config) {
+      penrose.generatePenroseTiling({
+        ctx: targetCtx,
+        ...config,
+      });
+    }
+
+    function renderImmediate(config) {
+      renderToContext(ctx, config);
+      log(`generated // div:${config.divisions} zoom:${config.zoomType}`);
+    }
+
+    // ═══════════════════════════════════════════
+    // ANIMATED TRANSITION
+    // ═══════════════════════════════════════════
+    function animateTransition(config, duration) {
+      if (isTransitioning) {
+        cancelAnimationFrame(animFrameId);
+      }
+
+      isTransitioning = true;
+      setStatus(true);
+      document.getElementById('app').classList.add('transitioning');
+
+      // Capture old state
+      ctxOld.clearRect(0, 0, bufferOld.width, bufferOld.height);
+      ctxOld.drawImage(display, 0, 0);
+
+      // Render new state to buffer
+      ctxNew.clearRect(0, 0, bufferNew.width, bufferNew.height);
+      renderToContext(ctxNew, config);
+
+      const startTime = performance.now();
+
+      log(`transitioning // ${duration}ms`, `div:${config.divisions}`);
+
+      function frame(now) {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const eased = easeInOutCubic(t);
+
+        // Clear display
+        ctx.clearRect(0, 0, display.width, display.height);
+
+        // Draw new state as base (full opacity)
+        ctx.globalAlpha = 1;
+        ctx.drawImage(bufferNew, 0, 0);
+
+        // Draw old state on top with fading alpha (crossfade)
+        ctx.globalAlpha = 1 - eased;
+        ctx.drawImage(bufferOld, 0, 0);
+
+        // Reset alpha
+        ctx.globalAlpha = 1;
+
+        if (t < 1) {
+          animFrameId = requestAnimationFrame(frame);
+        } else {
+          isTransitioning = false;
+          setStatus(false);
+          document.getElementById('app').classList.remove('transitioning');
+          log('transition complete');
+        }
+      }
+
+      animFrameId = requestAnimationFrame(frame);
+    }
+
+    // ═══════════════════════════════════════════
+    // APPLY
+    // ═══════════════════════════════════════════
+    function apply() {
+      const config = getConfig();
+      const duration = getDuration();
+
+      if (firstRender) {
+        firstRender = false;
+        renderImmediate(config);
+        return;
+      }
+
+      animateTransition(config, duration);
+    }
+
+    // ═══════════════════════════════════════════
+    // RANDOMIZE
+    // ═══════════════════════════════════════════
+    function randomize() {
+      elColor1.value = getRandomColor();
+      elColor2.value = getRandomColor();
+      elColor3.value = getRandomColor();
+
+      updateColorHex('color1');
+      updateColorHex('color2');
+      updateColorHex('color3');
+
+      // Randomize divisions sometimes
+      if (Math.random() > 0.5) {
+        const div = Math.floor(Math.random() * 5) + 3; // 3-7
+        elDivisions.value = div;
+        $('val-divisions').textContent = div;
+      }
+
+      log(`randomized palette`, `${elColor1.value} ${elColor2.value}`);
+    }
+
+    // ═══════════════════════════════════════════
+    // AUTO-CYCLE
+    // ═══════════════════════════════════════════
+    function startAutoCycle() {
+      stopAutoCycle();
+      const intervalMs = parseInt(elInterval.value) * 1000;
+      autoCycleTimer = setInterval(() => {
+        randomize();
+        apply();
+      }, intervalMs);
+      log(`auto-cycle on`, `every ${elInterval.value}s`);
+    }
+
+    function stopAutoCycle() {
+      if (autoCycleTimer) {
+        clearInterval(autoCycleTimer);
+        autoCycleTimer = null;
+      }
+    }
+
+    function toggleAutoCycle() {
+      autoCycleEnabled = !autoCycleEnabled;
+      elTrackAutocycle.classList.toggle('active', autoCycleEnabled);
+      elIntervalControl.style.display = autoCycleEnabled ? 'block' : 'none';
+
+      if (autoCycleEnabled) {
+        startAutoCycle();
+      } else {
+        stopAutoCycle();
+        log('auto-cycle off');
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // VALUE DISPLAY UPDATES
+    // ═══════════════════════════════════════════
+    function updateColorHex(id) {
+      const el = $(id);
+      const hex = $(`hex-${id}`);
+      if (el && hex) hex.textContent = el.value;
+    }
+
+    elDivisions.addEventListener('input', () => {
+      $('val-divisions').textContent = elDivisions.value;
+    });
+
+    elStrokeOpacity.addEventListener('input', () => {
+      $('val-strokeOpacity').textContent = elStrokeOpacity.value + '%';
+    });
+
+    elDuration.addEventListener('input', () => {
+      $('val-duration').textContent = (parseInt(elDuration.value) / 1000).toFixed(1) + 's';
+    });
+
+    elInterval.addEventListener('input', () => {
+      $('val-interval').textContent = elInterval.value + 's';
+      if (autoCycleEnabled) startAutoCycle();
+    });
+
+    // Color hex display
+    ['color1', 'color2', 'color3', 'bgColor'].forEach((id) => {
+      $(id).addEventListener('input', () => updateColorHex(id));
+    });
+
+    // ═══════════════════════════════════════════
+    // PRESETS
+    // ═══════════════════════════════════════════
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const preset = PRESETS[btn.dataset.preset];
+        if (!preset) return;
+
+        elColor1.value = preset.color1;
+        elColor2.value = preset.color2;
+        elColor3.value = preset.color3;
+        elBgColor.value = preset.bgColor;
+        elStrokeOpacity.value = preset.strokeOpacity;
+
+        updateColorHex('color1');
+        updateColorHex('color2');
+        updateColorHex('color3');
+        updateColorHex('bgColor');
+        $('val-strokeOpacity').textContent = preset.strokeOpacity + '%';
+
+        log(`preset loaded`, btn.dataset.preset);
+        apply();
+      });
+    });
+
+    // ═══════════════════════════════════════════
+    // EXPORT
+    // ═══════════════════════════════════════════
+    function exportPng() {
+      const link = document.createElement('a');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      link.download = `penrose-gen-${ts}.png`;
+      link.href = display.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      log('exported png');
+    }
+
+    // ═══════════════════════════════════════════
+    // EVENT LISTENERS
+    // ═══════════════════════════════════════════
+    elBtnApply.addEventListener('click', apply);
+
+    elBtnRandomize.addEventListener('click', () => {
+      randomize();
+      apply();
+    });
+
+    elBtnExport.addEventListener('click', exportPng);
+    elToggleAutocycle.addEventListener('click', toggleAutoCycle);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        randomize();
+        apply();
+      }
+      if (e.code === 'Enter') {
+        e.preventDefault();
+        apply();
+      }
+      if (e.code === 'KeyE') {
+        exportPng();
+      }
+    });
+
+    // ═══════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════
+    function init() {
+      log('initializing penrose.gen...');
+
+      // Set initial color hex displays
+      ['color1', 'color2', 'color3', 'bgColor'].forEach(updateColorHex);
+
+      // Render initial tiling
+      apply();
+
+      log('ready // space:randomize enter:apply e:export');
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
